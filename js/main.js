@@ -1,8 +1,10 @@
 let input= document.querySelectorAll("input");
 let addproduct = document.getElementById("addproduct");
+let rest = document.getElementById("rest");
 
 // table data
 let product_name = document.getElementById("name");
+console.log(product_name);
 let category = document.getElementById("category");
 let cost_input = document.querySelectorAll("#cost_input input");
 let count = document.getElementById("count");
@@ -124,7 +126,7 @@ let creat_object = ()=>{
 addproduct.addEventListener("click",creat_object);
 
 //================show data in table========================
-let show_data = ()=> {
+let show_data = () => {
     let table_row = "";
     for (let i = 0 ; i< all_product.length; i++){
         table_row +=`
@@ -134,11 +136,12 @@ let show_data = ()=> {
         <th> ${all_product[i].category}</th>
         <td> <i onclick= "remove_one_item(${i})" class="text-danger fa-solid fa-trash"></i></td>
          <td><i onclick = "view_one_item(${i})" class="text-primary fa-solid fa-eye"></i></td>
-          <td><i onclick = "update(${i})"  class="text-warning fa-solid fa-pen-to-square"></i></td>
+        <td><i onclick = "update(${i})"  class="text-warning fa-solid fa-pen-to-square"></i></td>
         </tr> `
     }
     tbody.innerHTML = table_row;
     checkempty();
+    
 }
 show_data();
 
@@ -220,7 +223,8 @@ layout.addEventListener ("click",close_model);
 
 // update item
 let update = (i)=> {
-    mood= "update";
+    globalid = i;
+    mood = "update";
     product_name.value = all_product[i].product_name;
     category.value = all_product[i].category;
     cost_input[0].value = all_product[i].cost;
@@ -229,9 +233,11 @@ let update = (i)=> {
     cost_input[3].value = all_product[i].discount;
     cost_input[4].value = all_product[i].sales_cost;
     cost_input[5].value = all_product[i].net_profit;
-    image.value = all_product[i].image
+    image.value = all_product[i].image;
     count.disabled = true;
     addproduct.innerHTML = ` update product ${i+1}`;
     addproduct.classList.replace  ("btn-info","btn-warning");
+    show_data();
 }
 
+rest.addEventListener("click", reset_input);
