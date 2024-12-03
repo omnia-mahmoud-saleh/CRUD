@@ -1,14 +1,20 @@
 let input= document.querySelectorAll("input");
+let span = document.querySelectorAll("#span1");
+let span2 = document.querySelectorAll("#span2");
+let span3 =document.getElementById("cat-span");
+let span4=document.getElementById("span4");
+let invalid= document.querySelectorAll(".invalid");
+let invalid2= document.querySelectorAll(".invalid2");
 let addproduct = document.getElementById("addproduct");
 let rest = document.getElementById("rest");
 
 // table data
 let product_name = document.getElementById("name");
-console.log(product_name);
 let category = document.getElementById("category");
 let cost_input = document.querySelectorAll("#cost_input input");
 let count = document.getElementById("count");
 let image = document.getElementById("my_image");
+let imagetester = /^(https:\/\/.*)$/i;
 
 let emptytask=document.getElementById("empty_task");
 let product_div = document.getElementById("product_div");
@@ -22,7 +28,7 @@ let closemodal = document.getElementById("closemodal")
 let confirmdelete = document.getElementById("confirmdelete");
 let mood = 'create';
 let globalid;
-
+let errors = ['is invalid'];
 
 // function to get net profit
 let get_profit= ()=>{
@@ -47,8 +53,9 @@ for (let i = 0 ;i<cost_input.length ; i++){
 }
 
 // -------------check empty_task----------------------
+let all_product;
 if(localStorage.myProducts == null){
-    all_product= [] ;
+    all_product= [];
 } else{
     all_product=JSON.parse(localStorage.getItem("myProducts"));
 }
@@ -67,6 +74,96 @@ let checkempty = ()=>{
 checkempty();
 // ---------------------------------------------------------------
 
+ let imageValidation= () =>{
+    let url= image.value;
+      if(!imagetester.test(url)){
+        image.classList.add("invalid");
+        span4.classList.remove("none");
+        //span4.style.display="block";
+        span4.innerHTML =`you must enter url`;
+        return false;
+      }else{
+        image.classList.remove("invalid");
+        span4.classList.add("none");
+        return true;
+      }
+    }
+image.addEventListener("keyup", imageValidation);   
+
+let realTimeValidation = ()=>{
+    let allValid = true;
+
+    // validate inputs
+    for (let i=0 ;i<input.length; i++){
+        if(input[i].value.length == 0){
+            span[i].style.display = "block";
+            span[i].innerHTML="you must enter data";
+            input[i].classList.add("invalid");
+            allValid = false;
+            errors.push(`Field ${i + 1} is empty`);
+          
+        } else {
+            span[i].style.display = "none"; 
+            input[i].classList.remove("invalid");
+        }
+    }
+
+
+// validate input numbers 
+
+    for(let n=0;n<cost_input.length;n++){
+        if(parseFloat(cost_input[n].value)< 0){
+            span2[n].style.display= "block";  
+            span2[n].innerHTML="you must enter positive number";
+            cost_input[n].classList.add("invalid2");
+            allValid = false;
+        } else{
+            span2[n].style.display="none";
+            cost_input[n].classList.remove("invalid2");
+        }
+    }
+
+/*for (let x = 0; x < cost_input.length; x++) { 
+    cost_input[x].addEventListener("keyup", checkValidation_Number); 
+}     */  
+
+// validate category
+    if (category.value.length==0){
+        category.classList.add("invalid");
+        span3.classList.remove("none");
+        span3.innerHTML="you must choose one";
+        allValid = false;
+    } else{
+        category.classList.remove("invalid");
+        span3.classList.add("none"); 
+    }  
+//category.addEventListener("change",validate_category);
+
+if (!imageValidation()) {
+    allValid = false;
+}
+
+return allValid;
+
+}
+
+input.forEach(input => {
+    input.addEventListener("keyup", realTimeValidation);
+    input.addEventListener("change", realTimeValidation);
+});
+ 
+cost_input.forEach(input => {
+    input.addEventListener("keyup", realTimeValidation);
+    input.addEventListener("change", realTimeValidation);
+});
+ 
+category.addEventListener("change", realTimeValidation);
+image.addEventListener("keyup", imageValidation);
+
+
+
+//--------------------
+
 let reset_input = ()=>{
     product_name.value = "";
     category.value = "";
@@ -81,6 +178,16 @@ let reset_input = ()=>{
 
 
 let creat_object = ()=>{
+    if (!realTimeValidation()) {
+        console.log("Validation failed. Product not added.");
+        return;
+    }
+
+    if (!imageValidation()) {
+        allValid = false;
+    }
+ 
+
     let new_product={
         product_name : product_name.value, 
         category : category.value,
@@ -92,13 +199,15 @@ let creat_object = ()=>{
         net_profit : cost_input[5].value,
         image : image.value,
     }
-
+    
     //if(errors.length == 0 && errorsnumber.length == 0) { 
     if (mood == 'create'){
-        if (count.value <=0){
+        let quantity = Number(count.value); 
+        console.log("Quantity to add:", quantity);
+        if (quantity <=0){
             all_product.push(new_product);
         } else{
-            for(let i =1 ; i<count.value ; i++){
+            for(let i =1 ; i<=quantity ; i++){
                 all_product.push(new_product);
             }
         }
@@ -108,10 +217,10 @@ let creat_object = ()=>{
             addproduct.innerHTML = "Add Product";
             addproduct.classList.replace  ("btn-warning","btn-info");
         }
-    
+        
    
 
-    all_product.push(new_product);
+    //all_product.push(new_product);
     localStorage.setItem("myProducts", JSON.stringify(all_product));
     product_div.classList.remove("none");
     clear_all.classList.remove("none");
@@ -125,10 +234,13 @@ let creat_object = ()=>{
 
 addproduct.addEventListener("click",creat_object);
 
+
 //================show data in table========================
 let show_data = () => {
     let table_row = "";
     for (let i = 0 ; i< all_product.length; i++){
+        if (all_product[i] !== null && all_product[i] !== undefined){
+
         table_row +=`
         <tr>
         <th> ${i+1} </th>
@@ -138,22 +250,27 @@ let show_data = () => {
          <td><i onclick = "view_one_item(${i})" class="text-primary fa-solid fa-eye"></i></td>
         <td><i onclick = "update(${i})"  class="text-warning fa-solid fa-pen-to-square"></i></td>
         </tr> `
+    } else {
+        // إذا كان العنصر null أو undefined، تجاهله أو سجل رسالة في console
+        console.warn(`Element at index ${i} is null or undefined`);
     }
+}
     tbody.innerHTML = table_row;
     checkempty();
     
 }
 show_data();
+//localStorage.clear();
 
 //-------- delete_all_products ---------------
 let clear_all_btn = ()=>{
-   /* if(confirm("are you sure")){
+    if(confirm("are you sure")){
         localStorage.clear();
         all_product.splice(0);
         show_data();
-    } */
+    } 
 
-        layout2.style.display = "block";
+       // layout2.style.display = "block";
 }
 clear_all.addEventListener('click',clear_all_btn);
 
@@ -241,3 +358,4 @@ let update = (i)=> {
 }
 
 rest.addEventListener("click", reset_input);
+

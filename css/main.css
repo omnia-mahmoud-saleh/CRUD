@@ -16,6 +16,23 @@ body{
 
 .none{
     display: none;
+    color: red !important; 
+}
+
+span{
+    color: red;
+}
+
+.invalid{
+    border: 2px solid red;
+}
+
+.invalid2{
+    border: 2px solid red;
+}
+
+input{
+    outline:0px;
 }
 
 i{
@@ -50,6 +67,7 @@ i{
     right: 0;
     z-index: 123444446;
 }
+
 
 @media(max-width:750px){
     .layout{
